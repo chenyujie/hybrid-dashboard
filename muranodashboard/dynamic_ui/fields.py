@@ -490,7 +490,7 @@ class FlavorChoiceField(ChoiceField):
                 self.choices.append((flavor.name, flavor.name))
         # Search through selected flavors
         for flavor_name, flavor_name in self.choices:
-            if 'medium' in flavor_name:
+            if 'small' in flavor_name:
                 self.initial = flavor_name
                 break
 
@@ -537,8 +537,12 @@ class ImageChoiceField(ChoiceField):
 
         self.choices = image_choices
 
+class MultipleChoiceField(forms.MultipleChoiceField, CustomPropertiesField):
+    pass
 
-class AZoneChoiceField(ChoiceField):
+class AZonesChoiceField(MultipleChoiceField):
+    widget = forms.CheckboxSelectMultiple
+
     @with_request
     def update(self, request, **kwargs):
         try:
@@ -550,7 +554,26 @@ class AZoneChoiceField(ChoiceField):
                               _("Unable to retrieve  availability zones."))
 
         az_choices = [(az.zoneName, az.zoneName)
-                      for az in availability_zones if az.zoneState]
+                      for az in availability_zones if az.zoneState['available']]
+        if not az_choices:
+            az_choices.insert(0, ("", _("No availability zones available")))
+
+        self.choices = az_choices
+
+class AZoneChoiceField(ChoiceField):
+    widget=hz_forms.DCWidget(attrs={'onchange':'update_az_fields();'})
+    @with_request
+    def update(self, request, **kwargs):
+        try:
+            availability_zones = nova.novaclient(
+                request).availability_zones.list(detailed=False)
+        except Exception:
+            availability_zones = []
+            exceptions.handle(request,
+                              _("Unable to retrieve  availability zones."))
+
+        az_choices = [(az.zoneName, az.zoneName)
+                      for az in availability_zones if az.zoneState['available']]
         if not az_choices:
             az_choices.insert(0, ("", _("No availability zones available")))
 

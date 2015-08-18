@@ -288,6 +288,14 @@ class ServicesTable(tables.DataTable):
                 filters={'type': 'Application', 'catalog': True})
         return json.dumps([package.to_dict() for package in packages])
 
+    def get_devs_list(self):
+        packages = []
+        with api_utils.handled_exceptions(self.request):
+            packages, self._more = pkg_api.package_list(
+                self.request,
+                filters={'type': 'Environment', 'catalog': True})
+        return json.dumps([package.to_dict() for package in packages])
+
     def actions_allowed(self):
         status, version = _get_environment_status_and_version(
             self.request, self)

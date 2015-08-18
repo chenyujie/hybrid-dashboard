@@ -49,6 +49,7 @@ TYPES.update({
     'keypair': fields.KeyPairChoiceField,
     'image': fields.ImageChoiceField,
     'azone': fields.AZoneChoiceField,
+    'azones': fields.AZonesChoiceField,
     'text': (fields.CharField, forms.Textarea),
     'choice': fields.ChoiceField,
     'floatingip': fields.FloatingIpBooleanField

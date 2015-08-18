@@ -7,8 +7,9 @@
   {% if table.actions_allowed %}
     <div class="row row-header">
       <div class="col-xs-5">
-        <h3 class="table_title extra_title table_title">{% blocktrans %}Application&nbsp;Components{% endblocktrans %}</h3>
+        <h3 class="table_title extra_title table_title">{% blocktrans %}Environment&nbsp;Components{% endblocktrans %}</h3>
       </div>
+      <!-- 
       <div class="col-xs-offset-0 col-xs-3">
         <h4 class="category-title">{% trans 'App category' %}</h4>
         <div class="dropdown" id="envAppsCategory">
@@ -26,6 +27,7 @@
           {% endwith %}
         </div>
       </div>
+       -->
       <div class="col-xs-3 filter-bar">
         <div class="has-feedback" id="envAppsFilter">
           <input class="form-control" value="{{ search }}" type="text"
@@ -36,7 +38,7 @@
     </div>
 
     <div class="clearfix"></div>
-    {% with apps=table.get_apps_list %}
+    {% with apps=table.get_devs_list %}
         {% if apps|length %}
             <div id="apps_carousel" class="carousel">
               <input type="hidden" id="apps_carousel_contents" value="{{ apps }}">

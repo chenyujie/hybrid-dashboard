@@ -23,7 +23,7 @@ assert exceptions
 
 class DeployPanels(horizon.PanelGroup):
     slug = "deployment_group"
-    name = _("Application Catalog")
+    name = _("Catalog")
     panels = ("environments", "catalog")
 
 
