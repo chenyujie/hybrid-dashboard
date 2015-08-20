@@ -1,0 +1,48 @@
+{% load i18n %}
+{% load url from future %}
+
+<h3>{% trans "Component Details" %}</h3>
+<div class="status_detail">
+  <h4>{% blocktrans %}Info {% endblocktrans %}</h4>
+  <dl>
+      {% for key, value in service.items %}
+        {% if  key == 'Instance' %}
+            <dt>Instance name</dt>
+            <dd>
+                <a href=" {% url 'horizon:project:instances:detail' value.id %}">
+                    {{ value.name }}
+                </a>
+            </dd><br>
+        {% elif  key == 'Instances' %}
+            {% for instance in value %}
+                <dt>Instance{{forloop.counter}} name</dt>
+                <dd>
+                    <a href=" {% url 'horizon:project:instances:detail' instance.id %}">
+                        {{ instance.name }}
+                    </a>
+                </dd><br>
+            {% endfor %}
+        {% elif  key == 'Stack'%}
+            <dt>Heat Orchestration stack name</dt>
+            <dd>
+                <a href=" {% url 'horizon:project:stacks:detail' value.id %}">
+                    {{ value.name }}
+                </a>
+            </dd><br>
+        {% elif  key == 'Stacks'%}
+            {% for stack in value %}
+                <dt>Heat Orchestration stack{{forloop.counter}} name</dt>
+                <dd>
+                    <a href=" {% url 'horizon:project:stacks:detail' stack.id %}">
+                        {{ stack.name }}
+                    </a>
+                </dd><br>
+            {% endfor %}
+        {% else %}
+            <dt>{% blocktrans %} {{ key }} {% endblocktrans %}</dt>
+            <dd>{% blocktrans %} {{ value }}  {% endblocktrans %}</dd>
+            <br>
+        {% endif %}
+      {% endfor %}
+  </dl>
+</div>

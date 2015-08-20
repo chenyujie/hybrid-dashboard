@@ -12,33 +12,15 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 import horizon
 
-from muranodashboard import exceptions
-# prevent pyflakes from fail
-assert exceptions
+from muranodashboard import dashboard
 
 
-class DeployPanels(horizon.PanelGroup):
-    slug = "deployment_group"
-    name = _("Catalog")
-    panels = ("clouds", "environments", "catalog")
+class Clouds(horizon.Panel):
+    name = _("Clouds")
+    slug = 'clouds'
+    permissions = ('openstack.roles.admin',)
 
-
-class ManagePanels(horizon.PanelGroup):
-    slug = "manage_metadata"
-    name = _("Manage")
-    panels = ("images", "packages", "categories")
-
-
-class Murano(horizon.Dashboard):
-    name = _(getattr(settings, 'MURANO_DASHBOARD_NAME', "Hybrid Cloud"))
-    slug = "murano"
-    panels = (DeployPanels, ManagePanels)
-    default_panel = "clouds"
-    supports_tenants = True
-
-
-horizon.register(Murano)
+dashboard.Murano.register(Clouds)
