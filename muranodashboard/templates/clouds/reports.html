@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% load i18n sizeformat static %}
+
+{% block css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'muranodashboard/css/reports.css' %}">
+{% endblock %}
+
+{% block title %}{% trans "Deployment Details" %}{% endblock %}
+
+{% block page_header %}
+  {% include "clouds/_reports_page_header.html" %}
+{% endblock page_header %}
+
+{% block main %}
+<div class="row">
+  <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">{{ tab_group.render }}</div>
+</div>
+{% endblock %}

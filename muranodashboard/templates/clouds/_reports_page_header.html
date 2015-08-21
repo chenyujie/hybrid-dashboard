@@ -1,0 +1,12 @@
+{% load i18n %}
+{% load url from future %}
+{% block page_header %}
+  <div class='page-header'>
+      <h2>
+          <a href=" {% url 'horizon:murano:clouds:index' %}">
+              {% blocktrans %}Hybrid Cloud{% endblocktrans %}
+          </a> >
+          Deployment at {{ deployment_start_time }}
+      </h2>
+  </div>
+{% endblock %}
