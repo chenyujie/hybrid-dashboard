@@ -30,7 +30,6 @@ from horizon.utils import memoized
 from muranoclient.common import exceptions as exc
 from muranodashboard import api as api_utils
 from muranodashboard.environments import api
-from muranodashboard.environments import forms as env_forms
 from muranodashboard.clouds import tables as env_tables
 from muranodashboard.clouds import tabs as env_tabs
 
@@ -96,61 +95,10 @@ class DetailServiceView(tabs.TabbedTableView):
         return self.tab_group_class(request, service=service, **kwargs)
 
 
-class CreateEnvironmentView(views.ModalFormView):
-    form_class = env_forms.CreateEnvironmentForm
-    template_name = 'environments/create.html'
-    context_object_name = 'environment'
-
-    def get_form(self, form_class):
-        if 'next' in self.request.GET:
-            self.request.session['next_url'] = self.request.GET['next']
-        return super(CreateEnvironmentView, self).get_form(form_class)
-
-    def get_success_url(self):
-        if 'next_url' in self.request.session:
-            return self.request.session['next_url']
-        env_id = self.request.session.get('env_id')
-        if env_id:
-            del self.request.session['env_id']
-            return reverse("horizon:murano:clouds:services",
-                           args=[env_id])
-        return reverse_lazy('horizon:murano:clouds:index')
-
-
-class EditEnvironmentView(views.ModalFormView):
-    form_class = env_forms.EditEnvironmentView
-    template_name = 'environments/update.html'
-    context_object_name = 'environment'
-    success_url = reverse_lazy('horizon:murano:clouds:index')
-
-    def get_context_data(self, **kwargs):
-        context = super(EditEnvironmentView, self).get_context_data(**kwargs)
-        env_id = getattr(self.get_object(), 'id')
-        context["env_id"] = env_id
-        return context
-
-    @memoized.memoized_method
-    def get_object(self):
-        environment_id = self.kwargs['environment_id']
-        try:
-            return api.environment_get(self.request, environment_id)
-        except Exception:
-            redirect = reverse("horizon:murano:clouds:index")
-            msg = _('Unable to retrieve environment details.')
-            exceptions.handle(self.request, msg, redirect=redirect)
-
-    def get_initial(self):
-        initial = super(EditEnvironmentView, self).get_initial()
-        name = getattr(self.get_object(), 'name', '')
-        initial.update({'environment_id': self.kwargs['environment_id'],
-                        'name': name})
-        return initial
-
-
 class DeploymentDetailsView(tabs.TabbedTableView):
     tab_group_class = env_tabs.DeploymentDetailsTabs
     table_class = env_tables.EnvConfigTable
-    template_name = 'deployments/reports.html'
+    template_name = 'clouds/reports.html'
 
     def get_context_data(self, **kwargs):
         context = super(DeploymentDetailsView, self).get_context_data(**kwargs)
@@ -171,7 +119,7 @@ class DeploymentDetailsView(tabs.TabbedTableView):
                                                   self.deployment_id)
         except (exc.HTTPInternalServerError, exc.HTTPNotFound):
             msg = _("Deployment with id %s doesn't exist anymore")
-            redirect = reverse("horizon:murano:environments:deployments")
+            redirect = reverse("horizon:murano:clouds:deployments")
             exceptions.handle(self.request,
                               msg % self.deployment_id,
                               redirect=redirect)
@@ -185,7 +133,7 @@ class DeploymentDetailsView(tabs.TabbedTableView):
                                           self.deployment_id)
         except (exc.HTTPInternalServerError, exc.HTTPNotFound):
             msg = _('Deployment with id %s doesn\'t exist anymore')
-            redirect = reverse("horizon:murano:environments:deployments")
+            redirect = reverse("horizon:murano:clouds:deployments")
             exceptions.handle(self.request,
                               msg % self.deployment_id,
                               redirect=redirect)
@@ -223,7 +171,7 @@ class StartActionView(generic.View):
     def post(request, environment_id, action_id):
         if api.action_allowed(request, environment_id):
             task_id = api.run_action(request, environment_id, action_id)
-            url = reverse('horizon:murano:environments:action_result',
+            url = reverse('horizon:murano:clouds:action_result',
                           args=(environment_id, task_id))
             return JSONResponse({'url': url})
         else:

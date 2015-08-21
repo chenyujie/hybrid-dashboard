@@ -42,83 +42,6 @@ def _get_environment_status_and_version(request, table):
     return status, version
 
 
-class AddApplication(tables.LinkAction):
-    name = 'AddApplication'
-    verbose_name = _('Add Component')
-    icon = 'plus'
-
-    def allowed(self, request, environment):
-        status, version = _get_environment_status_and_version(request,
-                                                              self.table)
-        return status not in consts.NO_ACTION_ALLOWED_STATUSES
-
-    def get_link_url(self, datum=None):
-        base_url = reverse('horizon:murano:catalog:switch_env',
-                           args=(catalog_views.get_cloud_id(),))
-        redirect_url = reverse('horizon:murano:catalog:index')
-        return '{0}?next={1}'.format(base_url, redirect_url)
-
-
-class CreateEnvironment(tables.LinkAction):
-    name = 'CreateEnvironment'
-    verbose_name = _('Create Environment')
-    url = 'horizon:murano:environments:create_environment'
-    classes = ('btn-launch', 'add_env')
-    redirect_url = "horizon:project:murano:environments"
-    icon = 'plus'
-
-    def allowed(self, request, datum):
-        return True if self.table.data else False
-
-    def action(self, request, environment):
-        try:
-            api.environment_create(request, environment)
-        except Exception as e:
-            msg = (_('Unable to create environment {0}'
-                     ' due to: {1}').format(environment, e))
-            LOG.info(msg)
-            redirect = reverse(self.redirect_url)
-            exceptions.handle(request, msg, redirect=redirect)
-
-
-class DeleteEnvironment(tables.DeleteAction):
-    data_type_singular = _('Environment')
-    data_type_plural = _('Environments')
-    action_past = _('Start Deleting')
-    redirect_url = "horizon:project:murano:environments"
-
-    def allowed(self, request, environment):
-        if environment:
-            return environment.status not in (consts.STATUS_ID_DEPLOYING,
-                                              consts.STATUS_ID_DELETING)
-        return True
-
-    def action(self, request, environment_id):
-        try:
-            api.environment_delete(request, environment_id)
-        except Exception as e:
-            msg = (_('Unable to delete environment {0}'
-                     ' due to: {1}').format(environment_id, e))
-            LOG.info(msg)
-            redirect = reverse(self.redirect_url)
-            exceptions.handle(request, msg, redirect=redirect)
-
-
-class EditEnvironment(tables.LinkAction):
-    name = 'edit'
-    verbose_name = _('Edit Environment')
-    url = 'horizon:murano:environments:update_environment'
-    classes = ('ajax-modal', 'btn-edit')
-    icon = 'edit'
-
-    def allowed(self, request, environment):
-        status = getattr(environment, 'status', None)
-        if status not in [consts.STATUS_ID_DEPLOYING]:
-            return True
-        else:
-            return False
-
-
 class DeleteService(tables.DeleteAction):
     data_type_singular = _('Component')
     data_type_plural = _('Components')
@@ -225,32 +148,8 @@ class UpdateServiceRow(tables.Row):
         return api.service_get(request, environment_id, service_id)
 
 
-class EnvironmentsTable(tables.DataTable):
-    name = tables.Column('name',
-                         link='horizon:murano:clouds:services',
-                         verbose_name=_('Name'))
-
-    status = tables.Column('status',
-                           verbose_name=_('Status'),
-                           status=True,
-                           status_choices=consts.STATUS_CHOICES,
-                           display_choices=consts.STATUS_DISPLAY_CHOICES)
-
-    class Meta:
-        name = 'murano'
-        verbose_name = _('Environments')
-        template = 'environments/_data_table.html'
-        row_class = UpdateEnvironmentRow
-        status_columns = ['status']
-        no_data_message = _('NO ENVIRONMENTS')
-        table_actions = (CreateEnvironment,)
-        row_actions = (ShowEnvironmentServices, DeployEnvironment,
-                       EditEnvironment, DeleteEnvironment)
-        multi_select = False
-
-
 def get_service_details_link(service):
-    return reverse('horizon:murano:environments:service_details',
+    return reverse('horizon:murano:clouds:service_details',
                    args=(service.environment_id, service['?']['id']))
 
 
@@ -322,7 +221,7 @@ class ServicesTable(tables.DataTable):
             class CustomAction(tables.LinkAction):
                 name = action_datum['name']
                 verbose_name = action_datum['name']
-                url = reverse('horizon:murano:environments:start_action',
+                url = reverse('horizon:murano:clouds:start_action',
                               args=(environment_id, action_datum['id']))
                 classes = _classes
                 table = self
@@ -354,7 +253,7 @@ class ServicesTable(tables.DataTable):
         no_data_message = _('NO COMPONENTS')
         status_columns = ['status']
         row_class = UpdateServiceRow
-        table_actions = (AddApplication, DeployThisEnvironment)
+        table_actions = (DeployThisEnvironment,)
         row_actions = (DeleteService,)
         multi_select = False
 
@@ -366,7 +265,7 @@ class ShowDeploymentDetails(tables.LinkAction):
     def get_link_url(self, deployment=None):
         kwargs = {'environment_id': deployment.environment_id,
                   'deployment_id': deployment.id}
-        return reverse('horizon:murano:environments:deployment_details',
+        return reverse('horizon:murano:clouds:deployment_details',
                        kwargs=kwargs)
 
     def allowed(self, request, environment):
