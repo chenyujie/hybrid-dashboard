@@ -148,19 +148,13 @@ class UpdateServiceRow(tables.Row):
         return api.service_get(request, environment_id, service_id)
 
 
-def get_service_details_link(service):
-    return reverse('horizon:murano:clouds:service_details',
-                   args=(service.environment_id, service['?']['id']))
-
-
 def get_service_type(datum):
     return datum['?'].get(consts.DASHBOARD_ATTRS_KEY, {}).get('name')
 
 
 class ServicesTable(tables.DataTable):
     name = tables.Column('name',
-                         verbose_name=_('Name'),
-                         link=get_service_details_link)
+                         verbose_name=_('Name'))
 
     _type = tables.Column(get_service_type,
                           verbose_name=_('Type'))

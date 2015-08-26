@@ -32,10 +32,6 @@ urlpatterns = urls.patterns(
     urls.url(CLOUD_ID + r'/services/get_d3_data$',
              views.JSONView.as_view(), name='d3_data'),
 
-    urls.url(CLOUD_ID + r'/(?P<service_id>[^/]+)/$',
-             views.DetailServiceView.as_view(),
-             name='service_details'),
-
     urls.url(CLOUD_ID + r'/start_action/(?P<action_id>[^/]+)/$',
              views.StartActionView.as_view(),
              name='start_action'),

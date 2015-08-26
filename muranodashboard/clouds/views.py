@@ -58,43 +58,6 @@ class EnvironmentDetails(tabs.TabbedTableView):
         return context
 
 
-class DetailServiceView(tabs.TabbedTableView):
-    tab_group_class = env_tabs.ServicesTabs
-    template_name = 'clouds/details.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(DetailServiceView, self).get_context_data(**kwargs)
-        context["service"] = self.get_data()
-        context["service_name"] = getattr(self.service, 'name', '-')
-        env = api.environment_get(self.request, self.environment_id)
-        context["environment_name"] = env.name
-        return context
-
-    def get_data(self):
-        service_id = self.kwargs['service_id']
-        self.environment_id = self.kwargs['environment_id']
-        try:
-            self.service = api.service_get(self.request,
-                                           self.environment_id,
-                                           service_id)
-        except exc.HTTPUnauthorized:
-            exceptions.handle(self.request)
-
-        except exc.HTTPForbidden:
-            redirect = reverse('horizon:murano:clouds:index')
-            exceptions.handle(self.request,
-                              _('Unable to retrieve details for '
-                                'service'),
-                              redirect=redirect)
-        else:
-            self._service = self.service
-            return self._service
-
-    def get_tabs(self, request, *args, **kwargs):
-        service = self.get_data()
-        return self.tab_group_class(request, service=service, **kwargs)
-
-
 class DeploymentDetailsView(tabs.TabbedTableView):
     tab_group_class = env_tabs.DeploymentDetailsTabs
     table_class = env_tables.EnvConfigTable
