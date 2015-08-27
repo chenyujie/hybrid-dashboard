@@ -47,9 +47,6 @@ from muranodashboard.dynamic_ui import services
 from muranodashboard.environments import api as env_api
 from muranodashboard.environments import consts
 
-def get_cloud_id():
-    return 'f5032119beb8413784212a60fd8ea121'
-
 LOG = logging.getLogger(__name__)
 ALL_CATEGORY_NAME = 'All'
 LATEST_APPS_QUEUE_LIMIT = 3
@@ -336,7 +333,7 @@ class Wizard(views.ModalFormMixin, LazyWizard):
                     environment_id = env.id
                 else:
                     environment_id = quick_environment_id
-            if environment_id == get_cloud_id():
+            if environment_id == env_api.get_cloud_id():
                 env_url = reverse('horizon:murano:clouds:services',
                                   args=(environment_id,))
             else:

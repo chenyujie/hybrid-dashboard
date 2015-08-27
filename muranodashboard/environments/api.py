@@ -21,6 +21,9 @@ from muranodashboard.environments import consts
 from muranodashboard.environments import topology
 
 
+def get_cloud_id():
+    return 'f5032119beb8413784212a60fd8ea121'
+
 LOG = logging.getLogger(__name__)
 
 
@@ -231,6 +234,9 @@ def services_list(request, environment_id):
                 time = service_data['updated'].replace('T', ' ')[:-7]
             except KeyError:
                 time = None
+
+        if environment_id == get_cloud_id():
+            service_data['region'] = service_data.get('region')
 
         service_data['environment_id'] = environment_id
         service_data['environment_version'] = environment.version

@@ -35,7 +35,7 @@ LOG = logging.getLogger(__name__)
 
 
 def _get_environment_status_and_version(request, table):
-    environment_id = catalog_views.get_cloud_id()    #table.kwargs.get('environment_id')
+    environment_id = api.get_cloud_id()    #table.kwargs.get('environment_id')
     env = api.environment_get(request, environment_id)
     status = getattr(env, 'status', None)
     version = getattr(env, 'version', None)
@@ -54,7 +54,7 @@ class DeleteService(tables.DeleteAction):
 
     def action(self, request, service_id):
         try:
-            environment_id = catalog_views.get_cloud_id()    #self.table.kwargs.get('environment_id')
+            environment_id = api.get_cloud_id()    #self.table.kwargs.get('environment_id')
             for service in self.table.data:
                 if service['?']['id'] == service_id:
                     api.service_delete(request,
@@ -110,7 +110,7 @@ class DeployThisEnvironment(tables.Action):
         return True
 
     def single(self, data_table, request, service_id):
-        environment_id = catalog_views.get_cloud_id()    #data_table.kwargs['environment_id']
+        environment_id = api.get_cloud_id()    #data_table.kwargs['environment_id']
         try:
             api.environment_deploy(request, environment_id)
             messages.success(request, _('Deploy started'))
@@ -144,7 +144,7 @@ class UpdateServiceRow(tables.Row):
     ajax = True
 
     def get_data(self, request, service_id):
-        environment_id = catalog_views.get_cloud_id()    #self.table.kwargs['environment_id']
+        environment_id = api.get_cloud_id()    #self.table.kwargs['environment_id']
         return api.service_get(request, environment_id, service_id)
 
 
@@ -153,22 +153,19 @@ def get_service_type(datum):
 
 
 class ServicesTable(tables.DataTable):
-    name = tables.Column('name',
-                         verbose_name=_('Name'))
+    name = tables.Column('name', verbose_name=_('Name'))
+    
+    region = tables.Column('region', verbose_name=_('Region'))
 
-    _type = tables.Column(get_service_type,
-                          verbose_name=_('Type'))
+    _type = tables.Column(get_service_type, verbose_name=_('Type'))
 
     status = tables.Column(lambda datum: datum['?'].get('status'),
                            verbose_name=_('Status'),
                            status=True,
                            status_choices=consts.STATUS_CHOICES,
                            display_choices=consts.STATUS_DISPLAY_CHOICES)
-    operation = tables.Column('operation',
-                              verbose_name=_('Last operation'),
-                              filters=(defaultfilters.urlize, ))
-    operation_updated = tables.Column('operation_updated',
-                                      verbose_name=_('Time updated'))
+    operation = tables.Column('operation', verbose_name=_('Last operation'), filters=(defaultfilters.urlize, ))
+    operation_updated = tables.Column('operation_updated', verbose_name=_('Time updated'))
 
     def get_object_id(self, datum):
         return datum['?']['id']
@@ -207,7 +204,7 @@ class ServicesTable(tables.DataTable):
 
     def get_row_actions(self, datum):
         actions = super(ServicesTable, self).get_row_actions(datum)
-        environment_id = catalog_views.get_cloud_id()    #self.kwargs['environment_id']
+        environment_id = api.get_cloud_id()    #self.kwargs['environment_id']
         app_actions = []
         for action_datum in api.extract_actions_list(datum):
             _classes = ('murano_action',)

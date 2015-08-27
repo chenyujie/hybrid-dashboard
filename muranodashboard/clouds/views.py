@@ -33,8 +33,6 @@ from muranodashboard.environments import api
 from muranodashboard.clouds import tables as env_tables
 from muranodashboard.clouds import tabs as env_tabs
 
-from muranodashboard.catalog import views as catalog_views
-
 LOG = logging.getLogger(__name__)
 
 
@@ -46,7 +44,7 @@ class EnvironmentDetails(tabs.TabbedTableView):
         context = super(EnvironmentDetails, self).get_context_data(**kwargs)
 
         try:
-            self.environment_id = catalog_views.get_cloud_id() #self.kwargs['environment_id']
+            self.environment_id = api.get_cloud_id() #self.kwargs['environment_id']
             env = api.environment_get(self.request, self.environment_id)
             context['environment_name'] = env.name
 

@@ -29,8 +29,6 @@ from muranodashboard.environments import api
 from muranodashboard.environments import consts
 from muranodashboard.clouds import tables
 
-from muranodashboard.catalog import views as catalog_views
-
 LOG = logging.getLogger(__name__)
 
 class OverviewTab(tabs.Tab):
@@ -137,7 +135,7 @@ class ServiceLogsTab(tabs.Tab):
 
     def get_context_data(self, request):
         service_id = self.tab_group.kwargs['service_id']
-        environment_id = catalog_views.get_cloud_id()    #self.tab_group.kwargs['environment_id']
+        environment_id = api.get_cloud_id()    #self.tab_group.kwargs['environment_id']
         reports = api.get_status_messages_for_service(request, service_id,
                                                       environment_id)
         return {"reports": reports}
@@ -182,7 +180,7 @@ class EnvironmentTopologyTab(tabs.Tab):
 
     def get_context_data(self, request):
         context = {}
-        environment_id = catalog_views.get_cloud_id() #self.tab_group.kwargs['environment_id']
+        environment_id = api.get_cloud_id() #self.tab_group.kwargs['environment_id']
         context['environment_id'] = environment_id
         d3_data = api.load_environment_data(self.request, environment_id)
         context['d3_data'] = d3_data
@@ -198,7 +196,7 @@ class EnvironmentServicesTab(tabs.TableTab):
 
     def get_services_data(self):
         services = []
-        self.environment_id = catalog_views.get_cloud_id()    #self.tab_group.kwargs['environment_id']
+        self.environment_id = api.get_cloud_id()    #self.tab_group.kwargs['environment_id']
         ns_url = "horizon:murano:clouds:index"
         try:
             services = api.services_list(self.request, self.environment_id)
@@ -227,7 +225,7 @@ class DeploymentTab(tabs.TableTab):
 
     def get_deployments_data(self):
         deployments = []
-        self.environment_id = catalog_views.get_cloud_id()    #self.tab_group.kwargs['environment_id']
+        self.environment_id = api.get_cloud_id()    #self.tab_group.kwargs['environment_id']
         ns_url = "horizon:murano:clouds:index"
         try:
             deployments = api.deployments_list(self.request,
