@@ -42,6 +42,7 @@ TYPES.update({
     'clusterip': fields.ClusterIPField,
     'domain': fields.DomainChoiceField,
     'password': fields.PasswordField,
+    'secret': fields.SecretField,
     'integer': fields.IntegerField,
     'databaselist': fields.DatabaseListField,
     'table': fields.TableField,
@@ -52,6 +53,7 @@ TYPES.update({
     'azones': fields.AZonesChoiceField,
     'text': (fields.CharField, forms.Textarea),
     'choice': fields.ChoiceField,
+    'aws_region': fields.AWSRegionChoiceField,
     'floatingip': fields.FloatingIpBooleanField
 })
 

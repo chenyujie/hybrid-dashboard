@@ -205,6 +205,13 @@ class CustomPropertiesField(forms.Field):
 class CharField(forms.CharField, CustomPropertiesField):
     pass
 
+class SecretField(forms.CharField, CustomPropertiesField):
+    def __init__(self, label, *args, **kwargs):
+        kwargs.update({
+            'label': label,
+            'widget': forms.PasswordInput,
+        })
+        super(SecretField, self).__init__(*args, **kwargs)
 
 class PasswordField(CharField):
     special_characters = '!@#$%^&*()_+|\/.,~?><:{}'
@@ -460,6 +467,15 @@ class ChoiceField(forms.ChoiceField, CustomPropertiesField):
 
 class DynamicChoiceField(hz_forms.DynamicChoiceField, CustomPropertiesField):
     pass
+
+
+from muranodashboard.clouds import region_mapping
+class AWSRegionChoiceField(ChoiceField):
+    @with_request
+    def update(self, request, **kwargs):
+        self.choices = [('', _('Select AWS Region'))]
+        for region in region_mapping.get_region_name_list():
+            self.choices.append(region)
 
 
 class FlavorChoiceField(ChoiceField):
