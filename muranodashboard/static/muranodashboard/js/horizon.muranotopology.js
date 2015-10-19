@@ -256,7 +256,7 @@ function ajax_poll(poll_time){
 
 if ($(murano_container).length){
   var width = $(murano_container).width(),
-    height = 1040,
+    height = $(window).height() - 250,
     environment_id = $("#environment_id").data("environment_id"),
     ajax_url = '/murano/'+environment_id+'/services/get_d3_data',
     graph = $("#d3_data").data("d3_data"),
@@ -265,7 +265,7 @@ if ($(murano_container).length){
       .links([])
       .gravity(0.25)
       .charge(-3000)
-      .linkDistance(100)
+      .linkDistance(130)
       .size([width, height])
       .on("tick", tick),
     svg = d3.select(murano_container).append("svg")
@@ -280,14 +280,14 @@ if ($(murano_container).length){
              .attr("id","clipCircle")
              .append("svg:circle")
              .attr("cursor","pointer")
-              .attr("r", "38px");
+              .attr("r", "58px");
 
   svg.append("svg:defs").selectAll("marker")
     .data(["end"])      // Different link/path types can be defined here
   .enter().append("svg:marker")    // This section adds in the arrows
     .attr("id", String)
     .attr("viewBox", "0 -5 10 10")
-    .attr("refX", 25)
+    .attr("refX", 33)
     .attr("refY", 0)
     .attr("fill", "#999")
     .attr("markerWidth", 6)
