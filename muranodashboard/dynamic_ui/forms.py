@@ -51,9 +51,11 @@ TYPES.update({
     'image': fields.ImageChoiceField,
     'azone': fields.AZoneChoiceField,
     'azones': fields.AZonesChoiceField,
+    'network': fields.NetworkChoiceField,
     'text': (fields.CharField, forms.Textarea),
     'choice': fields.ChoiceField,
     'aws_region': fields.AWSRegionChoiceField,
+    'file': fields.FileField,
     'floatingip': fields.FloatingIpBooleanField
 })
 

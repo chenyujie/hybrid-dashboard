@@ -33,6 +33,7 @@ from horizon import messages
 from horizon import tables
 from openstack_dashboard.api import glance
 from openstack_dashboard.api import nova
+from openstack_dashboard.api import neutron
 import yaql
 
 from muranoclient.common import exceptions as muranoclient_exc
@@ -203,6 +204,9 @@ class CustomPropertiesField(forms.Field):
 
 
 class CharField(forms.CharField, CustomPropertiesField):
+    pass
+
+class FileField(forms.FileInput, CustomPropertiesField):
     pass
 
 class SecretField(forms.CharField, CustomPropertiesField):
@@ -552,6 +556,26 @@ class ImageChoiceField(ChoiceField):
             image_choices.insert(0, ("", _("No images available")))
 
         self.choices = image_choices
+
+class NetworkChoiceField(ChoiceField):
+    @with_request
+    def update(self, request, **kwargs):
+        try:
+            networks = neutron.network_list_for_tenant(request, request.user.tenant_id)
+        except Exception:
+            exceptions.handle(request, _('Unable to retrieve networks list.'))
+            networks = []
+        try:
+            availability_zones = nova.novaclient(
+                request).availability_zones.list(detailed=False)
+        except Exception:
+            availability_zones = []
+            exceptions.handle(request,
+                              _("Unable to retrieve  availability zones."))
+
+        net_choices = [(net.id, net.name) for net in networks]
+
+        self.choices = net_choices
 
 class MultipleChoiceField(forms.MultipleChoiceField, CustomPropertiesField):
     pass
