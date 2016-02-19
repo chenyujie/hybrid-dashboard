@@ -620,6 +620,26 @@ class AZoneChoiceField(ChoiceField):
         self.choices = az_choices
 
 
+class PodAZoneChoiceField(ChoiceField):
+    widget=hz_forms.DCWidget(attrs={'onchange':'update_az_fields();'})
+    @with_request
+    def update(self, request, **kwargs):
+        try:
+            availability_zones = nova.novaclient(
+                request).availability_zones.list(detailed=False)
+        except Exception:
+            availability_zones = []
+            exceptions.handle(request,
+                              _("Unable to retrieve  availability zones."))
+        az_choices = [(az.zoneName, az.zoneName)
+                      for az in availability_zones if az.zoneState['available']]
+        az_choices.insert(0, ('Select Availability Zone', 'Select Availability Zone'))
+        if not az_choices:
+            az_choices.insert(0, ("", _("No availability zones available")))
+
+        self.choices = az_choices
+
+
 class BooleanField(forms.BooleanField, CustomPropertiesField):
     def __init__(self, *args, **kwargs):
         if 'widget' in kwargs:

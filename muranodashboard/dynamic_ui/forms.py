@@ -49,6 +49,7 @@ TYPES.update({
     'flavor': fields.FlavorChoiceField,
     'keypair': fields.KeyPairChoiceField,
     'image': fields.ImageChoiceField,
+    'podazone': fields.PodAZoneChoiceField,
     'azone': fields.AZoneChoiceField,
     'azones': fields.AZonesChoiceField,
     'network': fields.NetworkChoiceField,
