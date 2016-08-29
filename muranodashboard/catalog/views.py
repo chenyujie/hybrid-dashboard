@@ -334,7 +334,7 @@ class Wizard(views.ModalFormMixin, LazyWizard):
                 else:
                     environment_id = quick_environment_id
             if environment_id == env_api.get_cloud_id():
-                env_url = reverse('horizon:murano:clouds:services',
+                env_url = reverse('horizon:admin:clouds:services',
                                   args=(environment_id,))
             else:
                 env_url = reverse('horizon:murano:environments:services',

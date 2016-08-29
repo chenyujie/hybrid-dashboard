@@ -62,7 +62,7 @@ class DeleteService(tables.DeleteAction):
                                        service_id)
         except Exception:
             msg = _('Sorry, you can\'t delete service right now')
-            redirect = reverse("horizon:murano:clouds:index")
+            redirect = reverse("horizon:admin:clouds:index")
             exceptions.handle(request, msg, redirect=redirect)
 
 
@@ -87,7 +87,7 @@ class DeployEnvironment(tables.BatchAction):
             api.environment_deploy(request, environment_id)
         except Exception:
             msg = _('Unable to deploy. Try again later')
-            redirect = reverse('horizon:murano:clouds:index')
+            redirect = reverse('horizon:admin:clouds:index')
             exceptions.handle(request, msg, redirect=redirect)
 
 
@@ -118,16 +118,16 @@ class DeployThisEnvironment(tables.Action):
             msg = _('Unable to deploy. Try again later')
             exceptions.handle(
                 request, msg,
-                redirect=reverse('horizon:murano:clouds:index'))
+                redirect=reverse('horizon:admin:clouds:index'))
         return shortcuts.redirect(
-            reverse('horizon:murano:clouds:services',
+            reverse('horizon:admin:clouds:services',
                     args=(environment_id,)))
 
 
 class ShowEnvironmentServices(tables.LinkAction):
     name = 'show'
     verbose_name = _('Manage Components')
-    url = 'horizon:murano:clouds:services'
+    url = 'horizon:admin:clouds:services'
 
     def allowed(self, request, environment):
         return True
@@ -212,7 +212,7 @@ class ServicesTable(tables.DataTable):
             class CustomAction(tables.LinkAction):
                 name = action_datum['name']
                 verbose_name = action_datum['name']
-                url = reverse('horizon:murano:clouds:start_action',
+                url = reverse('horizon:admin:clouds:start_action',
                               args=(environment_id, action_datum['id']))
                 classes = _classes
                 table = self
@@ -256,8 +256,7 @@ class ShowDeploymentDetails(tables.LinkAction):
     def get_link_url(self, deployment=None):
         kwargs = {'environment_id': deployment.environment_id,
                   'deployment_id': deployment.id}
-        return reverse('horizon:murano:clouds:deployment_details',
-                       kwargs=kwargs)
+        return reverse('horizon:admin:clouds:deployment_details', kwargs=kwargs)
 
     def allowed(self, request, environment):
         return True

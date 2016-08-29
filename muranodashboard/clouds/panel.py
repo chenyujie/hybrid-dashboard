@@ -15,7 +15,7 @@
 from django.utils.translation import ugettext_lazy as _
 import horizon
 
-from muranodashboard import dashboard
+from openstack_dashboard.dashboards.admin import dashboard
 
 
 class Clouds(horizon.Panel):
@@ -23,4 +23,4 @@ class Clouds(horizon.Panel):
     slug = 'clouds'
     permissions = ('openstack.roles.admin',)
 
-dashboard.Murano.register(Clouds)
+dashboard.Admin.register(Clouds)

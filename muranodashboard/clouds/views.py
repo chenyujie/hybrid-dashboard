@@ -50,7 +50,7 @@ class EnvironmentDetails(tabs.TabbedTableView):
 
         except Exception:
             msg = _("Sorry, this environment doesn't exist anymore")
-            redirect = reverse("horizon:murano:clouds:index")
+            redirect = reverse("horizon:admin:clouds:index")
             exceptions.handle(self.request, msg, redirect=redirect)
         context['tenant_id'] = self.request.session['token'].tenant['id']
         return context
@@ -80,7 +80,7 @@ class DeploymentDetailsView(tabs.TabbedTableView):
                                                   self.deployment_id)
         except (exc.HTTPInternalServerError, exc.HTTPNotFound):
             msg = _("Deployment with id %s doesn't exist anymore")
-            redirect = reverse("horizon:murano:clouds:deployments")
+            redirect = reverse("horizon:admin:clouds:deployments")
             exceptions.handle(self.request,
                               msg % self.deployment_id,
                               redirect=redirect)
@@ -94,7 +94,7 @@ class DeploymentDetailsView(tabs.TabbedTableView):
                                           self.deployment_id)
         except (exc.HTTPInternalServerError, exc.HTTPNotFound):
             msg = _('Deployment with id %s doesn\'t exist anymore')
-            redirect = reverse("horizon:murano:clouds:deployments")
+            redirect = reverse("horizon:admin:clouds:deployments")
             exceptions.handle(self.request,
                               msg % self.deployment_id,
                               redirect=redirect)
@@ -132,7 +132,7 @@ class StartActionView(generic.View):
     def post(request, environment_id, action_id):
         if api.action_allowed(request, environment_id):
             task_id = api.run_action(request, environment_id, action_id)
-            url = reverse('horizon:murano:clouds:action_result',
+            url = reverse('horizon:admin:clouds:action_result',
                           args=(environment_id, task_id))
             return JSONResponse({'url': url})
         else:
