@@ -33,6 +33,7 @@ from horizon import messages
 from horizon import tables
 from openstack_dashboard.api import glance
 from openstack_dashboard.api import nova
+from openstack_dashboard.api import cinder
 from openstack_dashboard.api import neutron
 import yaql
 
@@ -522,7 +523,14 @@ class KeyPairChoiceField(DynamicChoiceField):
         self.choices = [('', _('No keypair'))]
         for keypair in nova.novaclient(request).keypairs.list():
             self.choices.append((keypair.name, keypair.name))
-
+            
+class VolumeChoiceField(DynamicChoiceField):
+    " This widget allows to select volume for VMs "
+    @with_request
+    def update(self, request, **kwargs):
+        self.choices = [('NOVOLUME', _('No volume'))]
+        for vol in cinder.cinderclient(request).volumes.list():
+            self.choices.append((vol.id, vol.id))
 
 class ImageChoiceField(ChoiceField):
     def __init__(self, *args, **kwargs):
