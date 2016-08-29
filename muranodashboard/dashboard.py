@@ -34,10 +34,10 @@ class ManagePanels(horizon.PanelGroup):
 
 
 class Murano(horizon.Dashboard):
-    name = _(getattr(settings, 'MURANO_DASHBOARD_NAME', "Hybrid Cloud"))
+    name = _(getattr(settings, 'MURANO_DASHBOARD_NAME', "Murano"))
     slug = "murano"
     panels = (DeployPanels, ManagePanels)
-    default_panel = "clouds"
+    default_panel = "environments"
     supports_tenants = True
 
 
