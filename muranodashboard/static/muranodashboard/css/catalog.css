@@ -448,6 +448,14 @@ h3.link .caret {
   overflow: hidden;
 }
 
+img.topo {
+  border:0; 
+  margin:0; 
+  padding:0; 
+  max-width:260px; 
+  width:expression_r(this.width>260?"260px":this.width); 
+}
+
 .selected-field {
   color: #428BCA;
   margin-left: -12px;

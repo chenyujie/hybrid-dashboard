@@ -29,7 +29,7 @@
 {% endblock %}
 
 {% block modal-body %}
-<div class="left">
+<div class="{% if got_picture %}col-md-4{% else %}left{% endif %}">
 {{ wizard.management_form }}
 {% if wizard.form.forms %}
     {{ wizard.form.management_form }}
@@ -45,7 +45,7 @@
 {% endif %}
 <p>{% blocktrans %} {{ extended_description }} {% endblocktrans %}</p>
 </div>
-<div class="right">
+<div class="{% if got_picture %}col-md-4{% else %}right{% endif %}">
     <h3> {% blocktrans %} {{ service_name }} {% endblocktrans %} </h3>
     {% for name, title, description in field_descriptions %}
         <p>
@@ -58,6 +58,11 @@
         </p>
     {% endfor %}
 </div>
+{% if got_picture %}
+    <div class="col-md-4">
+        <img class="topo" src="{% url 'horizon:murano:catalog:supplier_images' app_id %}"/>
+    </div>
+{% endif %}
 {% endblock %}
 
 {% block modal-footer %}
@@ -107,6 +112,7 @@
                     }
                 });
             });
+            {% if got_picture %}$('.modal-dialog').css({'width':'900px'});{% endif %}
         });
     </script>
     {{ wizard.form.media }}

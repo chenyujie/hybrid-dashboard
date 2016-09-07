@@ -418,6 +418,7 @@ class Wizard(views.ModalFormMixin, LazyWizard):
                         'do_redirect': self.get_wizard_flag('do_redirect'),
                         'drop_wm_form': self.get_wizard_flag('drop_wm_form'),
                         'prefix': self.prefix,
+                        'got_picture': app.supplier.has_key('Logo'),
                         })
         return context
 
