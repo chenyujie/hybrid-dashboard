@@ -34,12 +34,12 @@ from muranodashboard.api import packages as pkg_api
 LOG = logging.getLogger(__name__)
 
 
-def _get_environment_status_and_version(request, table):
-    environment_id = table.kwargs.get('environment_id')
-    env = api.environment_get(request, environment_id)
-    status = getattr(env, 'status', None)
-    version = getattr(env, 'version', None)
-    return status, version
+#def _get_environment_status_and_version(request, table):
+#    environment_id = table.kwargs.get('environment_id')
+#    env = api.environment_get(request, environment_id)
+#    status = getattr(env, 'status', None)
+#    version = getattr(env, 'version', None)
+#    return status, version
 
 
 class AddApplication(tables.LinkAction):
@@ -48,8 +48,9 @@ class AddApplication(tables.LinkAction):
     icon = 'plus'
 
     def allowed(self, request, environment):
-        status, version = _get_environment_status_and_version(request,
-                                                              self.table)
+        #status, version = _get_environment_status_and_version(request,
+        #                                                      self.table)
+        status = getattr(self.table._meta.env, 'status', None)
         return status not in consts.NO_ACTION_ALLOWED_STATUSES
 
     def get_link_url(self, datum=None):
@@ -119,14 +120,29 @@ class EditEnvironment(tables.LinkAction):
             return False
 
 
+class StopEnvironmentServices(tables.LinkAction):
+    name = 'stop'
+    verbose_name = _('Stop Processing')
+    url = 'horizon:murano:environments:stop_environment'
+
+    def allowed(self, request, environment):
+        status = getattr(environment, 'status', None)
+        if status in [consts.STATUS_ID_DEPLOYING]:
+            return True
+        else:
+            return False
+
+
 class DeleteService(tables.DeleteAction):
     data_type_singular = _('Component')
     data_type_plural = _('Components')
     action_past = _('Start Deleting')
 
     def allowed(self, request, service=None):
-        status, version = _get_environment_status_and_version(request,
-                                                              self.table)
+        if service is not None:
+            status = service['?'].get('status', consts.STATUS_ID_NEW)
+        #status, version = _get_environment_status_and_version(request,
+        #                                                      self.table)
         return status != consts.STATUS_ID_DEPLOYING
 
     def action(self, request, service_id):
@@ -175,8 +191,10 @@ class DeployThisEnvironment(tables.Action):
     classes = ('btn-launch',)
 
     def allowed(self, request, service):
-        status, version = _get_environment_status_and_version(request,
-                                                              self.table)
+        #status, version = _get_environment_status_and_version(request,
+        #                                                      self.table)
+        status = getattr(self.table._meta.env, 'status', None)
+        version = getattr(self.table._meta.env, 'version', None)
         if (status in consts.NO_ACTION_ALLOWED_STATUSES
                 or status == consts.STATUS_ID_READY):
             return False
@@ -255,13 +273,15 @@ def get_service_details_link(service):
 
 
 def get_service_type(datum):
-    return datum['?'].get(consts.DASHBOARD_ATTRS_KEY, {}).get('name')
+    return datum['?'].get(consts.DASHBOARD_ATTRS_KEY, {'name':datum['?']['type']}).get('name')
 
 
 class ServicesTable(tables.DataTable):
     name = tables.Column('name',
                          verbose_name=_('Name'),
                          link=get_service_details_link)
+
+    parent = tables.Column('parent', verbose_name=_('Parent'))
 
     _type = tables.Column(get_service_type,
                           verbose_name=_('Type'))
@@ -297,15 +317,19 @@ class ServicesTable(tables.DataTable):
         return json.dumps([package.to_dict() for package in packages])
 
     def actions_allowed(self):
-        status, version = _get_environment_status_and_version(
-            self.request, self)
+        #status, version = _get_environment_status_and_version(
+        #    self.request, self)
+        status = getattr(self._meta.env, 'status', None)
         return status not in consts.NO_ACTION_ALLOWED_STATUSES
 
     def get_categories_list(self):
         return catalog_views.get_categories_list(self.request)
 
     def get_row_actions(self, datum):
-        actions = super(ServicesTable, self).get_row_actions(datum)
+        if datum['parent'] is None:
+            actions = super(ServicesTable, self).get_row_actions(datum)
+        else:
+            actions = []
         environment_id = self.kwargs['environment_id']
         app_actions = []
         for action_datum in api.extract_actions_list(datum):
@@ -320,8 +344,9 @@ class ServicesTable(tables.DataTable):
                 table = self
 
                 def allowed(self, request, datum):
-                    status, version = _get_environment_status_and_version(
-                        request, self.table)
+                    #status, version = _get_environment_status_and_version(
+                    #    request, self.table)
+                    status = datum['?'].get('status', consts.STATUS_ID_NEW)
                     if status in consts.NO_ACTION_ALLOWED_STATUSES:
                         return False
                     return True
@@ -330,8 +355,9 @@ class ServicesTable(tables.DataTable):
             if not bound_action.allowed(self.request, datum):
                 continue
             bound_action.datum = datum
-            if issubclass(bound_action.__class__, tables.LinkAction):
-                bound_action.bound_url = bound_action.get_link_url(datum)
+            bound_action.bound_url = bound_action.url
+            #if issubclass(bound_action.__class__, tables.LinkAction):
+            #    bound_action.bound_url = bound_action.get_link_url(datum)
             app_actions.append(bound_action)
         if app_actions:
             # Show native actions first (such as "Delete Component") and
@@ -349,6 +375,7 @@ class ServicesTable(tables.DataTable):
         table_actions = (AddApplication, DeployThisEnvironment)
         row_actions = (DeleteService,)
         multi_select = False
+        env = {}
 
 
 class ShowDeploymentDetails(tables.LinkAction):

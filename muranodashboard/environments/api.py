@@ -201,17 +201,56 @@ def action_allowed(request, environment_id):
     status = getattr(env, 'status', None)
     return status not in ('deploying',)
 
-
-def services_list(request, environment_id):
+def services_data(service_data, service_item, services, reports, environment):
     def strip(msg, to=100):
         return u'%s...' % msg[:to] if len(msg) > to else msg
+    service_id = service_data['?']['id']
+    if service_id in reports and reports[service_id]:
+        last_operation = strip(reports[service_id].text)
+        time = reports[service_id].updated.replace('T', ' ')
+    else:
+        last_operation = 'Component draft created' \
+            if environment.version == 0 else ''
+        try:
+            time = service_data['updated'].replace('T', ' ')[:-7]
+        except KeyError:
+            time = None
+    service_data['parent'] = (None if service_item is None else service_item.get('name', service_item['?']['id']))
+    service_data['environment_id'] = environment.id
+    service_data['environment_version'] = environment.version
+    service_data['operation'] = last_operation
+    service_data['operation_updated'] = time
+    service_data['name'] = service_data.get('name', service_data['?']['id'])
+    service_data['?']['status'] = service_data['?'].get('status', (service_item['?'].get('status') if service_item is not None else ''))
+    services.append(service_data)
+    services = services_child(service_data, services, reports, environment)
+    return services
 
-    services = []
+def services_child(service_item, services, reports, environment):
+    for item in service_item:
+        if item == '?':
+            continue
+        service_data = service_item[item]
+        if isinstance(service_data, list):
+            for obj in service_data:
+                if not isinstance(obj, dict):
+                    continue
+                if obj.get('?', None) is not None:
+                    services = services_data(obj, service_item, services, reports, environment)
+        if not isinstance(service_data, dict):
+            continue
+        if service_data.get('?', None) is not None:
+            services = services_data(service_data, service_item, services, reports, environment)
+    return services
+
+def services_list(request, environment_id, environment=None):
     # need to create new session to see services deployed be other user
     session_id = Session.get(request, environment_id)
 
-    get_environment = api.muranoclient(request).environments.get
-    environment = get_environment(environment_id, session_id)
+    if environment is None:
+        get_environment = api.muranoclient(request).environments.get
+        environment = get_environment(environment_id, session_id)
+
     try:
         client = api.muranoclient(request)
         reports = client.environments.last_status(environment_id, session_id)
@@ -220,29 +259,9 @@ def services_list(request, environment_id):
                         'the {0} environment').format(environment_id))
         reports = {}
 
-    for service_item in environment.services or []:
-        service_data = service_item
-        service_id = service_data['?']['id']
-
-        if service_id in reports and reports[service_id]:
-            last_operation = strip(reports[service_id].text)
-            time = reports[service_id].updated.replace('T', ' ')
-        else:
-            last_operation = 'Component draft created' \
-                if environment.version == 0 else ''
-            try:
-                time = service_data['updated'].replace('T', ' ')[:-7]
-            except KeyError:
-                time = None
-
-        if environment_id == get_cloud_id():
-            service_data['region'] = service_data.get('region')
-
-        service_data['environment_id'] = environment_id
-        service_data['environment_version'] = environment.version
-        service_data['operation'] = last_operation
-        service_data['operation_updated'] = time
-        services.append(service_data)
+    services = []
+    for service_data in environment.services or []:
+        services = services_data(service_data, None, services, reports, environment)
 
     LOG.debug('Service::List')
     return [utils.Bunch(**service) for service in services]

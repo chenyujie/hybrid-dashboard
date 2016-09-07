@@ -69,7 +69,8 @@ class EnvironmentDetails(tabs.TabbedTableView):
 
         try:
             self.environment_id = self.kwargs['environment_id']
-            env = api.environment_get(self.request, self.environment_id)
+            env = self._tab_group._data['env']
+            #env = api.environment_get(self.request, self.environment_id)
             context['environment_name'] = env.name
 
         except Exception:

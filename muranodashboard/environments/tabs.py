@@ -82,7 +82,7 @@ class OverviewTab(tabs.Tab):
         detail_info = SortedDict([
             ('Name', getattr(service_data, 'name', '')),
             ('ID', service_data['?']['id']),
-            ('Type', service_data['?'][consts.DASHBOARD_ATTRS_KEY]['name']),
+            ('Type', service_data['?'].get(consts.DASHBOARD_ATTRS_KEY, {'name':service_data['?']['type']})['name']),
             ('Status', status_name), ])
 
         if hasattr(service_data, 'domain'):
@@ -167,6 +167,7 @@ class EnvConfigTab(tabs.TableTab):
         return deployment.get('services')
 
 
+from muranodashboard.environments import topology
 class EnvironmentTopologyTab(tabs.Tab):
     name = _("Topology")
     slug = "topology"
@@ -183,7 +184,9 @@ class EnvironmentTopologyTab(tabs.Tab):
         context = {}
         environment_id = self.tab_group.kwargs['environment_id']
         context['environment_id'] = environment_id
-        d3_data = api.load_environment_data(self.request, environment_id)
+        self.tab_group.load_tab_data()
+        d3_data = topology.render_d3_data(request, self.tab_group._data['env'])
+        #d3_data = api.load_environment_data(self.request, environment_id)
         context['d3_data'] = d3_data
         return context
 
@@ -194,13 +197,20 @@ class EnvironmentServicesTab(tabs.TableTab):
     table_classes = (tables.ServicesTable,)
     template_name = "services/_service_list.html"
     preload = False
+    
+    def load_table_data(self):
+        super(EnvironmentServicesTab, self).load_table_data()
+        for table_name, table in self._tables.items():
+            table._meta.env = self.tab_group._data['env']
 
     def get_services_data(self):
         services = []
         self.environment_id = self.tab_group.kwargs['environment_id']
+        print 'cyj: get service data of {0}'.format(self.environment_id)
         ns_url = "horizon:murano:environments:index"
         try:
-            services = api.services_list(self.request, self.environment_id)
+            self.tab_group.load_tab_data()
+            services = self.tab_group._data['services']
         except exc.HTTPForbidden:
             msg = _('Unable to retrieve list of services. This environment '
                     'is deploying or already deployed by other user.')
@@ -248,11 +258,19 @@ class EnvironmentDetailsTabs(tabs.TabGroup):
     slug = "environment_details"
     tabs = (EnvironmentServicesTab, EnvironmentTopologyTab, DeploymentTab)
 
+    def load_tab_data(self):
+        if self._data is None:
+            environment_id = self.kwargs['environment_id']
+            env = api.environment_get(self.request, environment_id)
+            self._data = {}
+            self._data['env'] = env
+            self._data['services'] = api.services_list(self.request, environment_id, env)
+
 
 class ServicesTabs(tabs.TabGroup):
     slug = "services_details"
     tabs = (OverviewTab, ServiceLogsTab)
-
+    
 
 class DeploymentDetailsTabs(tabs.TabGroup):
     slug = "deployment_details"
