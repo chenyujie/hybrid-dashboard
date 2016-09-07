@@ -13,7 +13,6 @@
 #    under the License.
 
 from django.conf import urls
-from openstack_dashboard.dashboards.project.instances import views as inst_view
 
 from muranodashboard.environments import views
 
@@ -51,10 +50,6 @@ urlpatterns = urls.patterns(
              r'/actions/(?P<task_id>[^/]+)(?:/(?P<optional>[^/]+))?/$',
              views.ActionResultView.as_view(),
              name='action_result'),
-
-    urls.url(r'^(?P<instance_id>[^/]+)/$',
-             inst_view.DetailView.as_view(),
-             name='detail'),
 
     urls.url(ENVIRONMENT_ID + r'/deployments/(?P<deployment_id>[^/]+)$',
              views.DeploymentDetailsView.as_view(),
