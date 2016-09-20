@@ -243,6 +243,7 @@ def render_d3_data(request, environment):
                     build_links_rec(val, node_data)
 
     for service in environment.services:
+        service['?']['status'] = environment.status
         in_progress, status_message = _get_environment_status_message(service)
         required_by = None
         if 'instance' in service and service['instance'] is not None:
